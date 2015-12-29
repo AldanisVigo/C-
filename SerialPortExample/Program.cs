@@ -1,10 +1,21 @@
-﻿using System;
+﻿/*
+ * Author: Aldanis Vigo
+ * Date: 12/28/2015
+ * 
+ * 
+ * 	Before you run this, make sure you place the servohead.png file inside the SerialPortExample/bin/Debug folder. You can also put whatever image you want and just change the name to 
+ *  servohead.png.
+*/
+
+using System;
 using System.IO.Ports;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Timers;
 using System.Threading;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace SerialPortExample
 {
@@ -74,6 +85,15 @@ namespace SerialPortExample
 	}
 	
 	public static class MainClass{
+		//Windows API call to hide Console Windows
+		[DllImport("user32.dll")]
+		public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+		[DllImport("kernel32")]
+		public static extern IntPtr GetConsoleWindow();
+		[DllImport("Kernel32")]
+		private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
+
+
 		static ServoDisplay MyServoDisplay;
 		static System.Windows.Forms.Form MyWindow;
 		static System.Windows.Forms.Button ConnectButton,baudMinus,baudPlus;
@@ -89,6 +109,13 @@ namespace SerialPortExample
 		static string incoming_data;
 		public static void Main (string[] args)
 		{     
+			//Remove this code to show Console Window
+			IntPtr hConsole = GetConsoleWindow();
+			if (IntPtr.Zero != hConsole)
+			{
+				ShowWindow(hConsole, 0); 
+			}
+				
 			Image servoKnob = Bitmap.FromFile ("servohead.png");
 			MyServoDisplay = new ServoDisplay (servoKnob);
 			ports = System.IO.Ports.SerialPort.GetPortNames();
