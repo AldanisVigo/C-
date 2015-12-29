@@ -4,32 +4,126 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Timers;
 using System.Threading;
+using System.Drawing.Drawing2D;
 
 namespace SerialPortExample
 {
+
+	class ServoDisplay : Form{
+		public Image knob{ get; set; }
+		private int dAngle;
+		private System.Windows.Forms.Label AngleValue;
+		private System.Windows.Forms.Timer updateTimer;
+		public int setAngle{
+			get{
+				return this.dAngle;
+			}
+			set{ 
+				this.dAngle = value;
+			}
+		}
+		public ServoDisplay(Image knobImg){
+			//Constructor
+			Text = "Servo Simulator";
+			updateTimer = new System.Windows.Forms.Timer();
+			updateTimer.Interval = 100;
+			updateTimer.Tick += new EventHandler (Redraw_Form);
+			updateTimer.Enabled = true;
+			knob = knobImg;
+			Width = knob.Width + 20;
+			Height = knob.Height + 40;
+			AngleValue = new Label ();
+			AngleValue.Text = dAngle.ToString();
+			AngleValue.Location = new Point (0, 0);
+			AngleValue.Font = new Font ("Impact", 15.8f);
+			AngleValue.Width = 60;
+			Controls.Add (AngleValue);
+			this.DoubleBuffered = true;
+		}
+		private void Redraw_Form(Object sender, EventArgs e){
+			this.Invalidate ();
+		}
+		protected override void OnPaint(PaintEventArgs e){
+			if (knob != null) {
+				
+				Bitmap newKnob = RotateImage ((Bitmap)knob,dAngle);
+				e.Graphics.DrawImage (newKnob,new Point(0,0));
+
+				AngleValue.Text = dAngle.ToString () + "°";
+				//Refresh ();
+			} 
+		}
+		private Bitmap RotateImage(Bitmap b, float angle)
+		{
+			//Create a new empty bitmap to hold rotated image.
+			Bitmap returnBitmap = new Bitmap(b.Width, b.Height);
+			//Make a graphics object from the empty bitmap.
+			Graphics g = Graphics.FromImage(returnBitmap);
+			//move rotation point to center of image.
+			g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+			g.TranslateTransform((float) b.Width / 2, (float)b.Height / 2);
+			//Rotate.        
+			g.RotateTransform(angle);
+			//Move image back.
+			g.TranslateTransform(-(float)b.Width / 2, -(float)b.Height / 2);
+			//Draw passed in image onto graphics object.
+			g.DrawImage(b, new Point(0, 0));
+			return returnBitmap;
+		}
+
+	}
 	
-	class MainClass
-	{
+	public static class MainClass{
+		static ServoDisplay MyServoDisplay;
 		static System.Windows.Forms.Form MyWindow;
 		static System.Windows.Forms.Button ConnectButton,baudMinus,baudPlus;
 		static System.Windows.Forms.ComboBox PortList;
 		static System.Windows.Forms.TextBox txtBaud;
 		static System.Windows.Forms.Timer myTimer;
 		static System.Windows.Forms.ListBox termDisplay;
+		//static Graphics myGraphics;
+
 		static String[] ports;
 		static SerialPort myPort;
 		static char baudupdownflag;
+		static string incoming_data;
 		public static void Main (string[] args)
-		{        
+		{     
+			Image servoKnob = Bitmap.FromFile (@"C:\Users\aldanisvigo\Pictures\servohead.png");
+			MyServoDisplay = new ServoDisplay (servoKnob);
 			ports = System.IO.Ports.SerialPort.GetPortNames();
 			InitWindow ();
 		}
 		public static void myPort_DataReceived(Object sender, SerialDataReceivedEventArgs e){
-			termDisplay.Invoke (new MethodInvoker(delegate(){
-				termDisplay.Items.Add(myPort.ReadLine());
-				termDisplay.SelectedIndex = termDisplay.Items.Count - 1;
-				//termDisplay.SelectedIndex = -1;
-			}));
+			incoming_data = myPort.ReadLine();
+			try{
+				termDisplay.Invoke (new MethodInvoker(delegate(){
+					termDisplay.Items.Add("Servo Angle:" + incoming_data + "°");
+					termDisplay.SelectedIndex = termDisplay.Items.Count - 1;
+				}));
+
+			}catch(Exception ex){
+				MessageBox.Show (ex.Message.ToString ());
+			}
+			//if(IsNumeric(incoming_data)){
+			//	//MyServoDisplay.setAngle = Convert.ToInt16(incoming_data);
+			//	MyServoDisplay.setAngle = int.Parse(incoming_data);
+			//}
+			int num;
+			bool isNum = int.TryParse (incoming_data, out num);
+			if (isNum) {
+				MyServoDisplay.setAngle = int.Parse (incoming_data);
+			}
+			Console.WriteLine("Angle:" + incoming_data);
+
+		}
+		public static bool IsNumeric(this string s){
+			foreach (char c in s){
+				if (!char.IsDigit(c) && c != '.'){
+					return false;
+				}
+			}
+			return true;
 		}
 		public static void InitWindow(){
 			//Main Window
@@ -100,9 +194,8 @@ namespace SerialPortExample
 
 			//termDisplay.UseWaitCursor = true;
 
-			MyWindow.Size = new System.Drawing.Size(PortList.Location.X + PortList.Width + 10 + baudMinus.Width + 10 + txtBaud.Width + 10 + baudPlus.Width + 10 + ConnectButton.Width + 25,termDisplay.Location.Y + termDisplay.Height + 49);
+			MyWindow.Size = new System.Drawing.Size(PortList.Location.X + PortList.Width + 10 + baudMinus.Width + 10 + txtBaud.Width + 10 + baudPlus.Width + 10 + ConnectButton.Width + 25 + MyWindow.Width,termDisplay.Location.Y + termDisplay.Height + 49);
 			termDisplay.Width = MyWindow.Size.Width - 36;
-
 			//Combine Controls
 			MyWindow.Controls.Add (ConnectButton);
 			MyWindow.Controls.Add (PortList);
@@ -111,7 +204,11 @@ namespace SerialPortExample
 			MyWindow.Controls.Add (txtBaud);
 			MyWindow.Controls.Add (termDisplay);
 			//Show and Run
+		
+			//myBrush = (Brush)Brushes.Black;
 
+
+			MyServoDisplay.Show ();
 			MyWindow.Show ();
 			Application.Run ();
 		}
@@ -137,6 +234,8 @@ namespace SerialPortExample
 			myTimer.Enabled = true; //Start the timer
 		}
 		static void MyWindow_Close(object sender, FormClosedEventArgs e){
+			MyServoDisplay.Dispose ();
+			MyWindow.Dispose ();
 			System.Environment.Exit (1);
 		}
 		//Connect Button Click Event Handler
