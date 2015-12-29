@@ -34,6 +34,7 @@ namespace SerialPortExample
 		}
 		public ServoDisplay(Image knobImg){
 			//Constructor
+			Icon = Icon.ExtractAssociatedIcon("C:/Users/aldanisvigo/Pictures/servohead.ico");
 			Text = "Servo Simulator";
 			updateTimer = new System.Windows.Forms.Timer();
 			updateTimer.Interval = 100;

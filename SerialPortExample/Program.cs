@@ -47,7 +47,7 @@ namespace SerialPortExample{
 			if (IntPtr.Zero != hConsole){
 				ShowWindow(hConsole,0); 
 			}
-			Image servoKnob = Bitmap.FromFile ("servohead.png");
+			Image servoKnob = Bitmap.FromFile (@"servohead.png");
 			MyServoDisplay = new ServoDisplay (servoKnob);
 			ports = System.IO.Ports.SerialPort.GetPortNames();
 			InitWindow();
@@ -73,9 +73,12 @@ namespace SerialPortExample{
 		}
 		public static void InitWindow(){
 			//Main Window
+			Icon myIcon = Icon.ExtractAssociatedIcon("C:/Users/aldanisvigo/Pictures/gearsIcon.ico");
 			MyWindow = new System.Windows.Forms.Form ();
+			MyWindow.Icon = myIcon;
 			MyWindow.Text = "Serial Hardware Control";
 			MyWindow.FormClosed += new FormClosedEventHandler (MyWindow_Close);
+
 			//Port List ComboBox
 			PortList = new System.Windows.Forms.ComboBox();
 			PortList.Items.AddRange (ports);
