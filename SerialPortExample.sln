@@ -14,4 +14,13 @@ Global
 		{6F46E735-8A78-444C-9033-F921B4C8862A}.Release|x86.ActiveCfg = Release|x86
 		{6F46E735-8A78-444C-9033-F921B4C8862A}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.VersionControlPolicy = $1
+		$1.CommitMessageStyle = $2
+		$2.Indent = @\t
+		$2.LastFilePostfix = "@:\n  "
+		$2.IncludeDirectoryPaths = True
+		$1.inheritsSet = Mono
+	EndGlobalSection
 EndGlobal
