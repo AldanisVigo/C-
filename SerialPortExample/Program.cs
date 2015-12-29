@@ -89,7 +89,7 @@ namespace SerialPortExample
 		static string incoming_data;
 		public static void Main (string[] args)
 		{     
-			Image servoKnob = Bitmap.FromFile (@"C:\Users\aldanisvigo\Pictures\servohead.png");
+			Image servoKnob = Bitmap.FromFile ("servohead.png");
 			MyServoDisplay = new ServoDisplay (servoKnob);
 			ports = System.IO.Ports.SerialPort.GetPortNames();
 			InitWindow ();
